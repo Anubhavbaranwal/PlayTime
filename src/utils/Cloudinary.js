@@ -20,3 +20,4 @@ const uploadFileCloudnary = async (localpath) => {
     fs.unlinkSync(localpath); // remove all the temporary saved data
   }
 };
+
