@@ -2,6 +2,7 @@ import { asynchandling } from "../utils/asynchandling.js";
 import { ApiError } from "../utils/ApiError.js";
 import { user } from "../models/user.model.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
+import { uploadFileCloudnary } from "../utils/Cloudinary.js";
 
 const registerUser = asynchandling(async (req, res) => {
   //get user details from frontend
@@ -25,7 +26,7 @@ const registerUser = asynchandling(async (req, res) => {
   }
 
   //Step-3
-  const existeduser = user.findOne({
+  const existeduser = await user.findOne({
     $or: [{ username }, { email }],
   });
 
@@ -40,15 +41,16 @@ const registerUser = asynchandling(async (req, res) => {
     throw new ApiError(400, "Avatar is required");
   }
 
-  const avatar = await uplloadOnCloudinary(avatarLocalpath);
-  const coverImage = await uplloadOnCloudinary(coverIMageLocalpath);
+  const avatar = await uploadFileCloudnary(avatarLocalpath);
+  const coverImage = await uploadFileCloudnary(coverIMageLocalpath);
+
 
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
   }
 
   const users = await user.create({
-    username: username.toLoercase(),
+    username: username.toLowerCase(),
     avatar: avatar.url,
     fullname,
     coverImage: coverImage?.url || "",
