@@ -15,8 +15,8 @@ const registerUser = asynchandling(async (req, res) => {
   // return res
 
   // step-get user details from frontend
+  console.log(req.body);
   const { email, username, fullname, password } = req.body;
-  console.log(email);
 
   //Step -2
   if (
@@ -34,8 +34,19 @@ const registerUser = asynchandling(async (req, res) => {
     throw new ApiError(409, "User with email or username already exists");
   }
 
+  console.log(req.files);
+
   const avatarLocalpath = req.files?.avatar[0].path;
-  const coverIMageLocalpath = req.files?.coverImage[0]?.path;
+  // const coverIMageLocalpath = req.files?.coverImage[0]?.path;
+
+  let coverIMageLocalpath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverIMageLocalpath = req.files.coverImage[0].path;
+  }
 
   if (!avatarLocalpath) {
     throw new ApiError(400, "Avatar is required");
@@ -43,7 +54,6 @@ const registerUser = asynchandling(async (req, res) => {
 
   const avatar = await uploadFileCloudnary(avatarLocalpath);
   const coverImage = await uploadFileCloudnary(coverIMageLocalpath);
-
 
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
@@ -53,6 +63,7 @@ const registerUser = asynchandling(async (req, res) => {
     username: username.toLowerCase(),
     avatar: avatar.url,
     fullname,
+    email,
     coverImage: coverImage?.url || "",
     password,
   });
