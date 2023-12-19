@@ -9,7 +9,7 @@ cloudinary.config({
 
 
 const uploadFileCloudnary = async (localpath) => {
-  // console.log(localpath);
+  
   try {
     if (localpath == null) return null;
     console.log(localpath + " a");
@@ -21,7 +21,7 @@ const uploadFileCloudnary = async (localpath) => {
     console.log(response);
     return response;
   } catch (error) {
-    fs.unlinkSync(localpath); // remove all the temporary saved data
+    fs.unlinkSync(localpath); 
     return null;
   }
 };
