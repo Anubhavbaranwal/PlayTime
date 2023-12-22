@@ -81,4 +81,13 @@ const registerUser = asynchandling(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User Registered Successfully"));
 });
 
-export default registerUser;
+//Login Control
+const LoginUser = asynchandling(async (req, res) => {
+   //Take data from user
+   // check it is not empty
+   //password decrypt
+   //match the data with backend
+   //chek whether data is correct or not
+});
+
+export { registerUser,LoginUser };
