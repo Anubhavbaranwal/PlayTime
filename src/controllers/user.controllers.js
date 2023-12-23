@@ -4,6 +4,24 @@ import { user } from "../models/user.model.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { uploadFileCloudnary } from "../utils/Cloudinary.js";
 
+
+const generateAccessandRefreshToken=async(userid)=>{
+  try {
+    const User=user.findById(userid)
+    const accesstoken=User.generateAccessToken()
+    const refreshtoken=User.generateRefreshToken()
+    
+    User.refreshtoken=refreshtoken;
+    await User.save({validateBeforeSave:false})
+
+
+    return {accesstoken,refreshtoken};
+  } catch (error) {
+    throw new  ApiError(500,"Something Went Wrong in Generating Access/Refresh Token")
+  }
+}
+
+
 const registerUser = asynchandling(async (req, res) => {
   //get user details from frontend
   //Validation-not empty
@@ -83,11 +101,35 @@ const registerUser = asynchandling(async (req, res) => {
 
 //Login Control
 const LoginUser = asynchandling(async (req, res) => {
-   //Take data from user
-   // check it is not empty
-   //password decrypt
-   //match the data with backend
-   //chek whether data is correct or not
+   // req.body->data
+   // username or email
+   //find user 
+   // password check
+   //access token and refresh token generate
+   // send it to cookie
+
+   const {email,username,password}=req.body;
+
+   if(!email||!username){
+    throw new ApiError(400,"Username or email is required");
+   }
+
+   const users= await user.findOne({
+    $or:[{username},{email}]
+   })
+
+   if(!users){
+    throw new ApiError(404,"User Not found");
+   }
+   const isuservalid=await users.isPasswordCorrect(password);
+
+   if(!isuservalid){
+    throw new ApiError(401,"Invalid User Credentials");
+   }
+
+   const {accesstoken,refreshtoken}=await generateAccessandRefreshToken(users._id);
+
+   
 });
 
 export { registerUser,LoginUser };
