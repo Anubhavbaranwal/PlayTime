@@ -150,5 +150,7 @@ const LoginUser = asynchandling(async (req, res) => {
 
 //Logout Control
 
-
+const LogOut=asynchandling(async(req,res)=>{
+  
+})
 export { registerUser,LoginUser };
