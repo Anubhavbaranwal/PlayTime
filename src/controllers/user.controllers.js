@@ -6,7 +6,7 @@ import { uploadFileCloudnary } from "../utils/Cloudinary.js";
 
 const generateAccessandRefreshToken = async (userid) => {
   try {
-    const User = user.findById(userid);
+    const User =await user.findById(userid);
     const accesstoken = User.generateAccessToken();
     const refreshtoken = User.generateRefreshToken();
 
@@ -110,7 +110,7 @@ const LoginUser = asynchandling(async (req, res) => {
 
   const { email, username, password } = req.body;
 
-  if (!email || !username) {
+  if (!email && !username) {
     throw new ApiError(400, "Username or email is required");
   }
 
