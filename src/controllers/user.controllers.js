@@ -230,4 +230,24 @@ const RefessAccessToken =asynchandling(async(req,res)=>{
   }
 })
 
+const changePassword=asynchandling(async(req,res)=>{
+  const {oldPassword,newPassword}=req.body;
+
+  const User=user.findById(req.User?._id);
+  const isPasswordCorrect=await User.isPasswordCorrect(oldPassword);
+
+  if(!isPasswordCorrect){
+    throw new ApiError(400,"Invalid old Password");
+  }
+
+  User.password=newPassword;
+  await User.save({validateBeforeSave:false});
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,{},"Password Changed Successfully"))
+})
+
+
+
 export { registerUser, LoginUser, LogOut ,RefessAccessToken };
