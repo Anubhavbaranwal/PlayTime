@@ -2,7 +2,10 @@ import { asynchandling } from "../utils/asynchandling.js";
 import { ApiError } from "../utils/ApiError.js";
 import { user } from "../models/user.model.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
-import { uploadFileCloudnary } from "../utils/Cloudinary.js";
+import {
+  uploadFileCloudnary,
+  deleteFilefromcloudinary,
+} from "../utils/Cloudinary.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessandRefreshToken = async (userid) => {
@@ -251,7 +254,7 @@ const changePassword = asynchandling(async (req, res) => {
 const currentUser = asynchandling(async (req, res) => {
   return res
     .status(200)
-    .json(200, res.User, "Current User Fetched SuccessFully");
+    .json(new ApiResponse(200, res.User, "Current User Fetched SuccessFully"));
 });
 
 ///when updating file make another controller as it is advised in production level; code
@@ -293,6 +296,8 @@ const updateUserAvatar = asynchandling(async (req, res) => {
     throw new ApiError(400, "Something went wrong on uploading file");
   }
 
+  const prevLink = (await user.findById(req.User?._id))?.avatar ?? null;
+
   const User = await user
     .findByIdAndUpdate(
       req.User?._id,
@@ -307,6 +312,10 @@ const updateUserAvatar = asynchandling(async (req, res) => {
     )
     .select("-password");
 
+  if (req.User && prevLink) {
+    await deleteFilefromcloudinary(prevLink);
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, User, "Avatar updated successfully"));
@@ -317,6 +326,7 @@ const updateUsercoverImage = asynchandling(async (req, res) => {
   if (!coverImage) {
     throw new ApiError(400, "Please Add CoverImage Link you want to keep");
   }
+  const prevLink = (await user.findById(req.User?._id))?.coverImage ?? null;
 
   const coverImagelink = await uploadFileCloudnary(coverImage);
 
@@ -338,6 +348,9 @@ const updateUsercoverImage = asynchandling(async (req, res) => {
     )
     .select("-password");
 
+  if (prevLink) {
+    await deleteFilefromcloudinary(prevLink);
+  }
   return res
     .status(200)
     .json(new ApiResponse(200, User, "cover Image updated successfully"));
