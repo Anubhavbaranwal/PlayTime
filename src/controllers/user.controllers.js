@@ -280,6 +280,69 @@ const updateUserDetails = asynchandling(async (req, res) => {
     .json(new ApiResponse(200, User, "Account Details Updated SuccessFully"));
 });
 
+const updateUserAvatar = asynchandling(async (req, res) => {
+  const avatar = req.file?.path;
+
+  if (!avatar) {
+    throw new ApiError(400, "Please Add Avatar Link you want to keep");
+  }
+
+  const avatarlink = await uploadFileCloudnary(avatar);
+
+  if (!avatarlink.url) {
+    throw new ApiError(400, "Something went wrong on uploading file");
+  }
+
+  const User = await user
+    .findByIdAndUpdate(
+      req.User?._id,
+      {
+        $set: {
+          avatar: avatarlink.url,
+        },
+      },
+      {
+        new: true,
+      }
+    )
+    .select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, User, "Avatar updated successfully"));
+});
+const updateUsercoverImage = asynchandling(async (req, res) => {
+  const coverImage = req.file?.path;
+
+  if (!coverImage) {
+    throw new ApiError(400, "Please Add CoverImage Link you want to keep");
+  }
+
+  const coverImagelink = await uploadFileCloudnary(coverImage);
+
+  if (!coverImagelink.url) {
+    throw new ApiError(400, "Something went wrong on uploading file");
+  }
+
+  const User = await user
+    .findByIdAndUpdate(
+      req.User?._id,
+      {
+        $set: {
+          coverImage: coverImagelink.url,
+        },
+      },
+      {
+        new: true,
+      }
+    )
+    .select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, User, "cover Image updated successfully"));
+});
+
 export {
   registerUser,
   LoginUser,
@@ -288,4 +351,6 @@ export {
   changePassword,
   currentUser,
   updateUserDetails,
+  updateUserAvatar,
+  updateUsercoverImage,
 };
