@@ -402,7 +402,27 @@ const getChannelandSubscriber = asynchandling(async (req, res) => {
         },
       },
     },
+    {
+      $project: {
+        fullname: 1,
+        email: 1,
+        username: 1,
+        avatar: 1,
+        coverImage: 1,
+        channelSubscribedToCount: 1,
+        subscriberCount: 1,
+        isSubscribed: 1,
+      },
+    },
   ]);
+
+  if (!channel?.length) {
+    throw new ApiError(404, "Channel doesnot Exists");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, channel, "channel list generated successfully"));
 });
 
 export {
