@@ -4,6 +4,7 @@ import {
   LoginUser,
   LogOut,
   RefessAccessToken,
+  getChannelandSubscriber,
 } from "../controllers/user.controllers.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { VerifyJWT } from "../middlewares/auth.middleware.js";

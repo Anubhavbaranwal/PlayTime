@@ -435,4 +435,5 @@ export {
   updateUserDetails,
   updateUserAvatar,
   updateUsercoverImage,
+  getChannelandSubscriber,
 };
