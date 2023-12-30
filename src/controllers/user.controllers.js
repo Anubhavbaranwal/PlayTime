@@ -1,12 +1,13 @@
 import { asynchandling } from "../utils/asynchandling.js";
 import { ApiError } from "../utils/ApiError.js";
-import { user } from "../models/user.model.js";
+import { user, user } from "../models/user.model.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import {
   uploadFileCloudnary,
   deleteFilefromcloudinary,
 } from "../utils/Cloudinary.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessandRefreshToken = async (userid) => {
   try {
@@ -425,6 +426,53 @@ const getChannelandSubscriber = asynchandling(async (req, res) => {
     .json(new ApiResponse(200, channel, "channel list generated successfully"));
 });
 
+const getWatchHistory = asynchandling(async (req, res) => {
+  const User = await user.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.User?._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+                {
+                  $addFields: {
+                    owner: {
+                      $first: "$owner",
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ]);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, User, "Watch History is Fetched Successfully"));
+});
+
 export {
   registerUser,
   LoginUser,
@@ -436,4 +484,5 @@ export {
   updateUserAvatar,
   updateUsercoverImage,
   getChannelandSubscriber,
+  getWatchHistory,
 };

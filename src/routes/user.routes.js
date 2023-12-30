@@ -8,6 +8,7 @@ import {
 } from "../controllers/user.controllers.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { VerifyJWT } from "../middlewares/auth.middleware.js";
+import { uploadVideo } from "../controllers/video.controller.js";
 
 const router = Router();
 
@@ -28,4 +29,12 @@ router.route("/login").post(LoginUser);
 router.route("/logout").post(VerifyJWT, LogOut);
 router.route("/refresh-token").post(RefessAccessToken);
 
+//for video
+router.route("/upload").post(
+  upload.fields([
+    { name: "video", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  uploadVideo
+);
 export default router;
