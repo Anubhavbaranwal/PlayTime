@@ -46,12 +46,5 @@ router
 router.route("/getchannel/:username").post(VerifyJWT, getChannelandSubscriber);
 router.route("/watchhistory").get(VerifyJWT,getWatchHistory)
 
-//for video
-// router.route("/upload").post(
-//   upload.fields([
-//     { name: "video", maxCount: 1 },
-//     { name: "thumbnail", maxCount: 1 },
-//   ]),
-//   uploadVideo
-// );
+
 export default router;
