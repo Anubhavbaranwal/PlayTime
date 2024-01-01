@@ -1,7 +1,7 @@
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
-import { video } from "../models/video.model.js";
+// import { video } from "../models/video.model.js";
 import { uploadFileCloudnary } from "../utils/Cloudinary.js";
 import { videos } from "../models/video.model.js";
 
@@ -31,17 +31,15 @@ const uploadVideo = asynchandling(async (res, req) => {
     throw new ApiError(400, "Something went wrong while uploading Video");
   }
 
-  const video=await videos.create({
+  const video = await videos.create({
     title,
     description,
-    videoFile:videoupload?.url,
-    thumbnail:thumbnailupload?.url,
-    isPublished:true,
+    videoFile: videoupload?.url,
+    thumbnail: thumbnailupload?.url,
+    isPublished: true,
     views,
-    owner:await videos.aggregate([
-        {}
-    ])
-  })
+    owner: req.User?._id,
+  });
 });
 
 export { uploadVideo };
