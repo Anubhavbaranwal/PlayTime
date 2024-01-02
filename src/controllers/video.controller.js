@@ -38,8 +38,13 @@ const uploadVideo = asynchandling(async (res, req) => {
     thumbnail: thumbnailupload?.url,
     isPublished: true,
     views,
+    duration:duration.duration,
     owner: req.User?._id,
   });
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,video,"Video uploaded Successfully"))
 });
 
 export { uploadVideo };
