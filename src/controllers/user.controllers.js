@@ -167,8 +167,8 @@ const LogOut = asynchandling(async (req, res) => {
   await user.findByIdAndUpdate(
     req.user?._id,
     {
-      $set: {
-        refreshtoken: undefined,
+      $unset: {
+        refreshToken: 1,
       },
     },
     {
@@ -468,6 +468,7 @@ const getWatchHistory = asynchandling(async (req, res) => {
       },
     },
   ]);
+  console.log(User);
   return res
     .status(200)
     .json(new ApiResponse(200, User, "Watch History is Fetched Successfully"));

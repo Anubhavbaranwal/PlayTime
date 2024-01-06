@@ -43,7 +43,6 @@ router
   .route("/update-coverImage")
   .patch(VerifyJWT, upload.single("/coverimage"), updateUsercoverImage);
 router.route("/getchannel/:username").post(VerifyJWT, getChannelandSubscriber);
-router.route("/watchhistory").get(VerifyJWT,getWatchHistory)
-
+router.route("/history").get(VerifyJWT, getWatchHistory);
 
 export default router;
