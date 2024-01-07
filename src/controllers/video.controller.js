@@ -2,8 +2,12 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
 // import { video } from "../models/video.model.js";
-import { uploadFileCloudnary } from "../utils/Cloudinary.js";
+import {
+  deleteFilefromcloudinary,
+  uploadFileCloudnary,
+} from "../utils/Cloudinary.js";
 import { videos } from "../models/video.model.js";
+import mongoose from "mongoose";
 
 const uploadVideo = asynchandling(async (res, req) => {
   const { title, description } = req.body;
@@ -38,15 +42,53 @@ const uploadVideo = asynchandling(async (res, req) => {
     thumbnail: thumbnailupload?.url,
     isPublished: true,
     views,
-    duration:duration.duration,
+    duration: duration.duration,
     owner: req.User?._id,
   });
 
   return res
-  .status(200)
-  .json(new ApiResponse(200,video,"Video uploaded Successfully"))
+    .status(200)
+    .json(new ApiResponse(200, video, "Video uploaded Successfully"));
 });
 
+const getVideoById = asynchandling(async (req, res) => {
+  const { videoId } = req.params;
+  //TODO: get video by id
+  const videoFile = await videos.findById(videoId);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videoFile, "Video successfully found "));
+});
 
+const updateVideo = asynchandling(async (req, res) => {
+  const { videoId } = req.params;
+  //TODO: update video details like title, description, thumbnail
+  const { title, description } = req.body;
 
-export { uploadVideo };
+  const thumbnail = req.files?.path;
+  if (thumbnail) {
+    const thumbnail = await uploadFileCloudnary(thumbnail);
+  }
+
+  if (!(title || description || thumbnail)) {
+    throw new ApiError(400, "Please Provide the data to update ");
+  }
+
+  const prevLink = await videos.findById(videoId)?.thumbnail;
+  const updateObject = {};
+  if (title) updateObject.title = title;
+  if (description) updateObject.description = description;
+  if (thumbnail) {
+    updateObject.thumbnail = thumbnail;
+    await deleteFilefromcloudinary(prevLink);
+  }
+
+  const updatedVideo = await videos.findByIdAndUpdate(videoId, updateObject, {
+    new: true,
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "video updated successfully"));
+});
+
+export { uploadVideo, getVideoById };
