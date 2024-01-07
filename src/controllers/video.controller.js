@@ -8,7 +8,10 @@ import {
 } from "../utils/Cloudinary.js";
 import { videos } from "../models/video.model.js";
 import mongoose from "mongoose";
-
+const getAllVideos = asynchandling(async (req, res) => {
+  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+  //TODO: get all videos based on query, sort, pagination
+});
 const uploadVideo = asynchandling(async (res, req) => {
   const { title, description } = req.body;
 
@@ -42,7 +45,7 @@ const uploadVideo = asynchandling(async (res, req) => {
     thumbnail: thumbnailupload?.url,
     isPublished: true,
     views,
-    duration: duration.duration,
+    duration: videoupload?.duration,
     owner: req.User?._id,
   });
 
@@ -89,6 +92,48 @@ const updateVideo = asynchandling(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, updatedVideo, "video updated successfully"));
+});
+const deleteVideo = asynchandling(async (req, res) => {
+  const { videoId } = req.params;
+  //TODO: delete video
+  const thumbLink = await videos.findById(videoId)?.thumbnail;
+  const video = await videos.findById(videoId)?.videoFile;
+
+  const deletedVideo = await videos.findByIdAndDelete(videoId);
+  if (deletedVideo) {
+    throw new ApiError(400, "Video Not Found");
+  }
+  const deleteVideodata = await deleteFilefromcloudinary(video);
+  const deletethumnaildata = await deleteFilefromcloudinary(thumbLink);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, deletedVideo, "Video deleted Successfully"));
+});
+
+const togglePublishStatus = asynchandling(async (req, res) => {
+  const { videoId } = req.params;
+  const publish = await videos.findById(videoId)?.isPublished;
+  if (!publish) {
+    throw new ApiError(200, "Something Went Wrong Please Try Again");
+  }
+  const isPublish = await videos.findByIdAndUpdate(
+    videoId,
+    {
+      $set: {
+        isPublished: !publish,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, isPublish, "Publish Status Changed Successfully")
+    );
 });
 
 export { uploadVideo, getVideoById };
