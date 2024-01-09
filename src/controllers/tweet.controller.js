@@ -1,5 +1,5 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { tweets } from "../models/tweet.model.js";
+import { tweet } from "../models/tweet.model.js";
 import { User, user } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
@@ -12,7 +12,7 @@ const createTweet = asynchandling(async (req, res) => {
     throw new ApiError(400, "Please Provide the username and content both");
   }
 
-  const tweet = new tweets.create({
+  const tweet = new tweet.create({
     owner: req.User?._id,
     content,
   });
@@ -39,7 +39,7 @@ const getUserTweets = asynchandling(async (req, res) => {
     throw new ApiError(404, "user data not found");
   }
 
-  const tweets = await tweets.find({
+  const tweets = await tweet.find({
     owner: userdata?._id,
   });
   return res.status(200).json(200, tweets, "ALL tweets Fetched Successfully");
@@ -55,7 +55,7 @@ const updateTweet = asynchandling(async (req, res) => {
   if (!tweetId) {
     throw new ApiError(404, `Tweet Not Found With the following ${tweetId} `);
   }
-  const updatedtweet = await tweets.findByIdAndUpdate(tweetId, {
+  const updatedtweet = await tweet.findByIdAndUpdate(tweetId, {
     $set: {
       content,
     },
@@ -72,7 +72,7 @@ const deleteTweet = asynchandling(async (req, res) => {
   if (!tweetId) {
     throw new ApiError(400, "TweetId not Valid");
   }
-  const deletedtweet = await tweets.findByIdAndDelete(tweetId);
+  const deletedtweet = await tweet.findByIdAndDelete(tweetId);
 
   return res
     .status(200)

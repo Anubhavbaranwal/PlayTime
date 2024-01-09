@@ -3,6 +3,7 @@ import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asyncHandler.js";
+import { comment } from "../models/comments.model.js";
 
 const getVideoComments = asynchandling(async (req, res) => {
   //TODO: get all comments for a video
@@ -52,10 +53,43 @@ const addComment = asynchandling(async (req, res) => {
 
 const updateComment = asynchandling(async (req, res) => {
   // TODO: update a comment
+  const { commentId } = req.params;
+  if (!commentId) {
+    throw new ApiError(404, "commentID not Valid");
+  }
+  const { newComment } = req.body;
+  if (!newComment) {
+    throw new ApiError(406, "new Comment content is missing");
+  }
+
+  const update = await comment.findByIdAndUpdate(
+    commentId,
+    {
+      $set: {
+        content: newComment,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  return res
+    .status(204)
+    .json(new Apiresponse(204, update, "Comment Updated Successfully"));
 });
 
 const deleteComment = asynchandling(async (req, res) => {
   // TODO: delete a comment
+  const { commentId } = req.params;
+  if (!commentId) {
+    throw new ApiError(400, "Please provide the comment id ");
+  }
+
+  const deletecomm = await comment.findByIdAndDelete(commentId);
+
+  return res
+    .status(200)
+    .json(new Apiresponse(200, deletecomm, "comment Deleted Successfully"));
 });
 
 export { getVideoComments, addComment, updateComment, deleteComment };
