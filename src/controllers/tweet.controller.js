@@ -1,10 +1,9 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { tweets } from "../models/tweet.model.js";
-import { User } from "../models/user.model.js";
+import { User, user } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
-
 
 const createTweet = asynchandling(async (req, res) => {
   //TODO: create tweet
@@ -31,22 +30,18 @@ const getUserTweets = asynchandling(async (req, res) => {
     throw new ApiError(404, "user not found");
   }
 
-  const tweets =
-    await tweets.aggregate[
-      ({
-        $match: {
-          _id: new mongoose.Types.ObjectId(userId),
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "content",
-          foreignField: "_id",
-          as: "alltweets",
-        },
-      })
-    ];
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(500, `bad format of User id `);
+  }
+  const userdata = await user.findById(userId);
+
+  if (!userdata) {
+    throw new ApiError(404, "user data not found");
+  }
+
+  const tweets = await tweets.find({
+    owner: userdata?._id,
+  });
   return res.status(200).json(200, tweets, "ALL tweets Fetched Successfully");
 });
 
@@ -58,7 +53,7 @@ const updateTweet = asynchandling(async (req, res) => {
     throw new ApiError(404, " Please give Input ");
   }
   if (!tweetId) {
-    throw new ApiError(404, " Please give Correct TweetID ");
+    throw new ApiError(404, `Tweet Not Found With the following ${tweetId} `);
   }
   const updatedtweet = await tweets.findByIdAndUpdate(tweetId, {
     $set: {
