@@ -1,25 +1,25 @@
+import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
-// import { video } from "../models/video.model.js";
 import {
   deleteFilefromcloudinary,
   uploadFileCloudnary,
 } from "../utils/Cloudinary.js";
 import { videos } from "../models/video.model.js";
-import mongoose from "mongoose";
 const getAllVideos = asynchandling(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //TODO: get all videos based on query, sort, pagination
 });
-const uploadVideo = asynchandling(async (res, req) => {
+const uploadVideo = asynchandling(async (req, res) => {
+  console.log(req.body);
   const { title, description } = req.body;
 
   if (!(title || description)) {
     throw new ApiError(400, "title and description is required");
   }
 
-  const vidoepath = req.files?.video[0].path;
+  const vidoepath = req.files?.videoFile[0].path;
 
   if (!vidoepath) {
     throw new ApiError(400, "Video is required");
@@ -44,7 +44,7 @@ const uploadVideo = asynchandling(async (res, req) => {
     videoFile: videoupload?.url,
     thumbnail: thumbnailupload?.url,
     isPublished: true,
-    views,
+    views: 0,
     duration: videoupload?.duration,
     owner: req.User?._id,
   });
@@ -100,9 +100,7 @@ const deleteVideo = asynchandling(async (req, res) => {
   const video = await videos.findById(videoId)?.videoFile;
 
   const deletedVideo = await videos.findByIdAndDelete(videoId);
-  if (deletedVideo) {
-    throw new ApiError(400, "Video Not Found");
-  }
+ 
   const deleteVideodata = await deleteFilefromcloudinary(video);
   const deletethumnaildata = await deleteFilefromcloudinary(thumbLink);
 
@@ -136,4 +134,10 @@ const togglePublishStatus = asynchandling(async (req, res) => {
     );
 });
 
-export { uploadVideo, getVideoById };
+export {
+  uploadVideo,
+  getVideoById,
+  updateVideo,
+  deleteVideo,
+  togglePublishStatus,
+};

@@ -6,7 +6,7 @@ const healthcheck = asynchandling(async (_req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "", "OK Status, service is working fine."));
+    .json(new ApiResponse(200, "", "service is working fine."));
 });
 
 export { healthcheck };

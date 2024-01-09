@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { Comment } from "../models/comment.model.js";
+import { comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
-import { asynchandling } from "../utils/asyncHandler.js";
+import { asynchandling } from "../utils/asynchandling.js";
 import { comment } from "../models/comments.model.js";
 
 const getVideoComments = asynchandling(async (req, res) => {
@@ -19,7 +19,7 @@ const getVideoComments = asynchandling(async (req, res) => {
     throw new ApiError(201, " Video Not Found");
   }
 
-  const comments = await Comment.find({ videoId })
+  const comments = await comment.find({ videoId })
     .skip((page - 1) * limit)
     .limit(limit)
     .sort({ createdAt: -1 });
@@ -40,7 +40,7 @@ const addComment = asynchandling(async (req, res) => {
     throw new ApiError(400, "Please provide the comment");
   }
 
-  const commentdone = new Comment.create({
+  const commentdone = new comment.create({
     user: req.User._id,
     video: videoId,
     content,
