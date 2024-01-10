@@ -2,7 +2,7 @@ import mongoose, { isValidObjectId } from "mongoose";
 import { user } from "../models/user.model.js";
 import { subscription } from "../models/subscription.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Apiresponse } from "../utils/Apiresponse.js";
+import { ApiResponse, Apiresponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
 
 const toggleSubscription = asynchandling(async (req, res) => {
@@ -95,6 +95,9 @@ const getSubscribedChannels = asynchandling(async (req, res) => {
       },
     },
   ]);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, subscribedTo, "List of Subscribed channel"));
 });
 
 export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };

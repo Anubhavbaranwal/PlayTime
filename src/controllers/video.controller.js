@@ -6,10 +6,80 @@ import {
   deleteFilefromcloudinary,
   uploadFileCloudnary,
 } from "../utils/Cloudinary.js";
-import { videos } from "../models/video.model.js";
+import { videos, videos } from "../models/video.model.js";
 const getAllVideos = asynchandling(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //TODO: get all videos based on query, sort, pagination
+  const options = {
+    page,
+    limit,
+  };
+
+  const videos = await videos.aggregatePaginate(
+    [
+      {
+        $match: {
+          $and: [
+            {
+              isPublished: true,
+            },
+            {
+              $text: {
+                $search: query,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          st: {
+            $meta: "textScore",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "owner",
+          foreignField: "_id",
+          as: "owner",
+          pipeline: [
+            {
+              $project: {
+                username: 1,
+                fullName: 1,
+                avatar: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          owner: { $first: "$owner" },
+        },
+      },
+      {
+        $sort: {
+          st: -1,
+          views: -1,
+        },
+      },
+    ],
+    {
+      page,
+      limit,
+    }
+  );
+
+  if (!videos) {
+    throw new ApiError(500, "something want wrong while get all videos");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, comments, "get all videos successfully"));
 });
 const uploadVideo = asynchandling(async (req, res) => {
   console.log(req.body);
@@ -145,6 +215,7 @@ const togglePublishStatus = asynchandling(async (req, res) => {
 });
 
 export {
+  getAllVideos,
   uploadVideo,
   getVideoById,
   updateVideo,
