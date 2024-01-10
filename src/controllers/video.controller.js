@@ -57,7 +57,12 @@ const uploadVideo = asynchandling(async (req, res) => {
 const getVideoById = asynchandling(async (req, res) => {
   const { videoId } = req.params;
   //TODO: get video by id
-  const videoFile = await videos.findById(videoId);
+  const videoFile = await videos.find({
+    _id: new mongoose.Types.ObjectId(videoId),
+  });
+  // if (!videoFile) {
+  //   throw new ApiError(400, "there is no video with such id");
+  // }
   return res
     .status(200)
     .json(new ApiResponse(200, videoFile, "Video successfully found "));
@@ -89,6 +94,7 @@ const updateVideo = asynchandling(async (req, res) => {
   const updatedVideo = await videos.findByIdAndUpdate(videoId, updateObject, {
     new: true,
   });
+  console.log(updateVideo);
   return res
     .status(200)
     .json(new ApiResponse(200, updatedVideo, "video updated successfully"));
@@ -100,26 +106,30 @@ const deleteVideo = asynchandling(async (req, res) => {
   const video = await videos.findById(videoId)?.videoFile;
 
   const deletedVideo = await videos.findByIdAndDelete(videoId);
- 
+  if (!deleteVideo) {
+    throw new ApiError(400, "video deletion failed");
+  }
   const deleteVideodata = await deleteFilefromcloudinary(video);
   const deletethumnaildata = await deleteFilefromcloudinary(thumbLink);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, deletedVideo, "Video deleted Successfully"));
+    .json(new ApiResponse(200, {}, "Video deleted Successfully"));
 });
 
 const togglePublishStatus = asynchandling(async (req, res) => {
   const { videoId } = req.params;
-  const publish = await videos.findById(videoId)?.isPublished;
+  const publish = await videos.findById(videoId);
   if (!publish) {
     throw new ApiError(200, "Something Went Wrong Please Try Again");
   }
+  const publishValue = await videos.findById(videoId).isPublished;
+
   const isPublish = await videos.findByIdAndUpdate(
     videoId,
     {
       $set: {
-        isPublished: !publish,
+        isPublished: !publishValue,
       },
     },
     {
