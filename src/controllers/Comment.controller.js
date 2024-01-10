@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { comment } from "../models/comment.model.js";
-import { ApiError } from "../utils/ApiError.js";
-import { Apiresponse } from "../utils/Apiresponse.js";
-import { asynchandling } from "../utils/asynchandling.js";
 import { comment } from "../models/comments.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/Apiresponse.js";
+import { asynchandling } from "../utils/asynchandling.js";
+// import { comment } from "../models/comments.model.js";
 
 const getVideoComments = asynchandling(async (req, res) => {
   //TODO: get all comments for a video
@@ -19,14 +19,15 @@ const getVideoComments = asynchandling(async (req, res) => {
     throw new ApiError(201, " Video Not Found");
   }
 
-  const comments = await comment.find({ videoId })
+  const comments = await comment
+    .find({ videoId })
     .skip((page - 1) * limit)
     .limit(limit)
     .sort({ createdAt: -1 });
 
   return res
     .status(200)
-    .json(new Apiresponse(201, comments, "omments fetched Successfully"));
+    .json(new ApiResponse(200, comments, "omments fetched Successfully"));
 });
 
 const addComment = asynchandling(async (req, res) => {
@@ -48,7 +49,7 @@ const addComment = asynchandling(async (req, res) => {
 
   return req
     .status(200)
-    .json(new Apiresponse(200, commentdone, "comment done successfully"));
+    .json(new ApiResponse(200, commentdone, "comment done successfully"));
 });
 
 const updateComment = asynchandling(async (req, res) => {
@@ -75,7 +76,7 @@ const updateComment = asynchandling(async (req, res) => {
   );
   return res
     .status(204)
-    .json(new Apiresponse(204, update, "Comment Updated Successfully"));
+    .json(new ApiResponse(204, update, "Comment Updated Successfully"));
 });
 
 const deleteComment = asynchandling(async (req, res) => {
@@ -89,7 +90,7 @@ const deleteComment = asynchandling(async (req, res) => {
 
   return res
     .status(200)
-    .json(new Apiresponse(200, deletecomm, "comment Deleted Successfully"));
+    .json(new ApiResponse(200, deletecomm, "comment Deleted Successfully"));
 });
 
 export { getVideoComments, addComment, updateComment, deleteComment };

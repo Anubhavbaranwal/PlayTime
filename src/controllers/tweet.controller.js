@@ -1,8 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { tweet } from "../models/tweet.model.js";
-import { User, user } from "../models/user.model.js";
+import { tweet } from "../models/tweets.models.js";
+import { user } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Apiresponse } from "../utils/Apiresponse.js";
+import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
 
 const createTweet = asynchandling(async (req, res) => {
@@ -19,7 +19,7 @@ const createTweet = asynchandling(async (req, res) => {
 
   return res
     .status(200)
-    .json(new Apiresponse(200, tweet, "Tweet created Successfully"));
+    .json(new ApiResponse(200, tweet, "Tweet created Successfully"));
 });
 
 const getUserTweets = asynchandling(async (req, res) => {
@@ -44,7 +44,7 @@ const getUserTweets = asynchandling(async (req, res) => {
   });
   return res
     .status(200)
-    .json(new Apiresponse(200, tweets, "ALL tweets Fetched Successfully"));
+    .json(new ApiResponse(200, tweets, "ALL tweets Fetched Successfully"));
 });
 
 const updateTweet = asynchandling(async (req, res) => {
@@ -65,7 +65,7 @@ const updateTweet = asynchandling(async (req, res) => {
 
   return res
     .status(200)
-    .json(new Apiresponse(200, updatedtweet, "tweet Updated Successfully"));
+    .json(new ApiResponse(200, updatedtweet, "tweet Updated Successfully"));
 });
 
 const deleteTweet = asynchandling(async (req, res) => {
@@ -78,7 +78,7 @@ const deleteTweet = asynchandling(async (req, res) => {
 
   return res
     .status(200)
-    .json(new Apiresponse(200, deletedtweet, "Tweet Deleted Successfully"));
+    .json(new ApiResponse(200, deletedtweet, "Tweet Deleted Successfully"));
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };

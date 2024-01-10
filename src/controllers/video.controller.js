@@ -6,7 +6,7 @@ import {
   deleteFilefromcloudinary,
   uploadFileCloudnary,
 } from "../utils/Cloudinary.js";
-import { videos, videos } from "../models/video.model.js";
+import { videos } from "../models/video.model.js";
 const getAllVideos = asynchandling(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //TODO: get all videos based on query, sort, pagination

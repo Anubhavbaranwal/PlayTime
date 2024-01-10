@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { Video, videos } from "../models/video.model.js";
-import { Subscription } from "../models/subscription.model.js";
+import {  videos } from "../models/video.model.js";
+import { subscription } from "../models/Subscription.models.js";
 import { Like } from "../models/like.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
