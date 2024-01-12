@@ -19,20 +19,21 @@ const toggleSubscription = asynchandling(async (req, res) => {
     ],
   });
   let tooglefunc;
-  if (!subscribed) {
+
+  tooglefunc = await subscription.findOneAndDelete({
+    subscriber: req.User?._id,
+    channel: channelId,
+  });
+
+  if (!subscription) {
     tooglefunc = await subscription.create({
-      subscriber: new mongoose.Types.ObjectId(subscriberId),
-      channel: new mongoose.Types.ObjectId(channelId),
+      subscriber: req.User?._id,
+      channel: channelId,
     });
-    if (!tooglefunc) {
-      throw new ApiError(401, "Please try again something went wrong");
-    }
-  } else {
-    tooglefunc = await subscription.findByIdAndDelete(subscribed._id);
   }
   return res
     .status(200)
-    .json(new Apiresponse(200, tooglefunc, "subcription function executed"));
+    .json(new ApiResponse(200, tooglefunc, "subcription function executed"));
 });
 
 // controller to return subscriber list of a channel
