@@ -43,7 +43,7 @@ Before you begin, ensure you have met the following requirements:
 2. Navigate to the project directory:
 
     ```bash
-    cd youtube-clone-backend
+    cd PlayTime
     ```
 
 3. Install dependencies:
@@ -59,9 +59,17 @@ Before you begin, ensure you have met the following requirements:
 1. Create a `.env` file in the root directory and set the following environment variables:
 
     ```env
-    PORT=3000
-    MONGODB_URI=mongodb://localhost:8000/youtube_clone
-    SECRET_KEY=your_secret_key
+     PORT=
+     MONGODB_URI=
+     CORS_ORIGIN=
+     ACCESS_TOKEN_SECRET=
+     ACCESS_TOKEN_EXPIRY=
+     REFRESH_TOKEN_SECRET=
+     REFRESH_TOKEN_EXPIRY=
+
+     CLOUDINARY_CLOUD_NAME=
+     CLOUDINARY_CLOUD_APIKEY=
+     CLOUDINARY_CLOUD_APISECRET=
     ```
 
     Adjust the values according to your preferences and setup.
