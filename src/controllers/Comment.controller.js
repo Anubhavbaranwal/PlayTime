@@ -3,7 +3,6 @@ import { comment } from "../models/comments.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
-// import { comment } from "../models/comments.model.js";
 
 const getVideoComments = asynchandling(async (req, res) => {
   //TODO: get all comments for a video
