@@ -15,7 +15,7 @@ const getAllVideos = asynchandling(async (req, res) => {
     limit,
   };
 
-  const videos = await videos.aggregatePaginate(
+  const video = await videos.aggregatePaginate(
     [
       {
         $match: {
@@ -73,29 +73,29 @@ const getAllVideos = asynchandling(async (req, res) => {
     }
   );
 
-  if (!videos) {
+  if (!video) {
     throw new ApiError(500, "something want wrong while get all videos");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, comments, "get all videos successfully"));
+    .json(new ApiResponse(200, video, "get all videos successfully"));
 });
 const uploadVideo = asynchandling(async (req, res) => {
-  console.log(req.body);
+
   const { title, description } = req.body;
 
   if (!(title || description)) {
     throw new ApiError(400, "title and description is required");
   }
-
+  console.log(req.files);
   const vidoepath = req.files?.videoFile[0].path;
 
   if (!vidoepath) {
     throw new ApiError(400, "Video is required");
   }
 
-  const thumbnailpath = req.files?.thumbnail[0].path;
+  const thumbnailpath = req.files?.thumbnail?.[0].path;
 
   if (!thumbnailpath) {
     throw new ApiError(400, "thumbnail is required");
@@ -103,6 +103,7 @@ const uploadVideo = asynchandling(async (req, res) => {
 
   const videoupload = await uploadFileCloudnary(vidoepath);
   const thumbnailupload = await uploadFileCloudnary(thumbnailpath);
+  console.log(videoupload, thumbnailupload);
 
   if (!(videoupload || thumbnailupload)) {
     throw new ApiError(400, "Something went wrong while uploading Video");
@@ -126,17 +127,41 @@ const uploadVideo = asynchandling(async (req, res) => {
 
 const getVideoById = asynchandling(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: get video by id
-  const videoFile = await videos.find({
-    _id: new mongoose.Types.ObjectId(videoId),
-  });
-  // if (!videoFile) {
-  //   throw new ApiError(400, "there is no video with such id");
-  // }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, videoFile, "Video successfully found "));
+  
+  const video = await videos.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  // Define different quality levels for the video
+  const qualities = [
+    { resolution: '720p', bitrate: '3000k' },
+    { resolution: '480p', bitrate: '1500k' },
+    { resolution: '240p', bitrate: '800k' }
+  ];
+
+  // Generate video URLs for each quality level
+  const videoUrls = qualities.map(quality => ({
+    resolution: quality.resolution,
+    url: `${video.videoFile}/${quality.resolution}/index.m3u8`
+  }));
+
+  // Return the video details along with URLs for different quality levels
+  return res.status(200).json(new ApiResponse(200, { video, videoUrls }, "Video found"));
 });
+// const getVideoById = asynchandling(async (req, res) => {
+//   const { videoId } = req.params;
+//   //TODO: get video by id
+//   const videoFile = await videos.find({
+//     _id: new mongoose.Types.ObjectId(videoId),
+//   });
+//   // if (!videoFile) {
+//   //   throw new ApiError(400, "there is no video with such id");
+//   // }
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, videoFile, "Video successfully found "));
+// });
 
 const updateVideo = asynchandling(async (req, res) => {
   const { videoId } = req.params;

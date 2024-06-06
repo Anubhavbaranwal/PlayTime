@@ -37,7 +37,6 @@ const registerUser = asynchandling(async (req, res) => {
   // return res
 
   // step-get user details from frontend
-  console.log(req.body);
   const { email, username, fullname, password } = req.body;
 
   //Step -2
@@ -55,9 +54,6 @@ const registerUser = asynchandling(async (req, res) => {
   if (existeduser) {
     throw new ApiError(409, "User with email or username already exists");
   }
-
-  console.log(req.files);
-
   const avatarLocalpath = req.files?.avatar[0].path;
   // const coverIMageLocalpath = req.files?.coverImage[0]?.path;
 
@@ -69,6 +65,7 @@ const registerUser = asynchandling(async (req, res) => {
   ) {
     coverIMageLocalpath = req.files.coverImage[0].path;
   }
+
 
   if (!avatarLocalpath) {
     throw new ApiError(400, "Avatar is required");
@@ -162,7 +159,6 @@ const LoginUser = asynchandling(async (req, res) => {
 });
 
 //Logout Control
-
 const LogOut = asynchandling(async (req, res) => {
   await user.findByIdAndUpdate(
     req.user?._id,
@@ -473,6 +469,24 @@ const getWatchHistory = asynchandling(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, User, "Watch History is Fetched Successfully"));
 });
+const userbyid = asynchandling(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw new ApiError(400, "User Id is required");
+  }
+
+  const User = await user
+    .findById(id)
+    . select("-password -refreshToken")
+  
+  if (!User) {
+    throw new ApiError(404, "User Not Found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, User, "User Fetched Successfully"));
+});
 
 export {
   registerUser,
@@ -486,4 +500,5 @@ export {
   updateUsercoverImage,
   getChannelandSubscriber,
   getWatchHistory,
+  userbyid,
 };
