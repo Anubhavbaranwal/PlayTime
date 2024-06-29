@@ -45,7 +45,7 @@ router
   .patch(VerifyJWT, upload.single("/coverimage"), updateUsercoverImage);
 router.route("/getchannel/:username").post(VerifyJWT, getChannelandSubscriber);
 router.route("/history").get(VerifyJWT, getWatchHistory);
-router.route("/user/:id").get(userbyid);
+router.route("/:id").get(userbyid);
 // router.route("/upload").post()
 
 export default router;

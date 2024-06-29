@@ -478,7 +478,7 @@ const userbyid = asynchandling(async (req, res) => {
 
   const User = await user
     .findById(id)
-    . select("-password -refreshToken")
+    . select("-password -refreshtoken")
   
   if (!User) {
     throw new ApiError(404, "User Not Found");
