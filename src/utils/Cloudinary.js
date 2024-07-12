@@ -16,6 +16,7 @@ const uploadFileCloudnary = async (localpath) => {
       resource_type: "auto",
     });
     console.log(response + " b");
+    console.log(response + " b");
     fs.unlinkSync(localpath);
     
     return response;

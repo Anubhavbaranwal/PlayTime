@@ -46,6 +46,5 @@ router
 router.route("/getchannel/:username").post(VerifyJWT, getChannelandSubscriber);
 router.route("/history").get(VerifyJWT, getWatchHistory);
 router.route("/:id").get(userbyid);
-// router.route("/upload").post()
 
 export default router;

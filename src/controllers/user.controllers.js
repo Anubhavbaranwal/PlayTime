@@ -55,27 +55,29 @@ const registerUser = asynchandling(async (req, res) => {
     throw new ApiError(409, "User with email or username already exists");
   }
   const avatarLocalpath = req.files?.avatar[0].path;
+  console.log(req.files?.avatar[0].path, "abce");
   // const coverIMageLocalpath = req.files?.coverImage[0]?.path;
 
   let coverIMageLocalpath;
+  let coverImage;
   if (
     req.files &&
     Array.isArray(req.files.coverImage) &&
     req.files.coverImage.length > 0
   ) {
     coverIMageLocalpath = req.files.coverImage[0].path;
+    coverImage = await uploadFileCloudnary(coverIMageLocalpath);
   }
 
-
   if (!avatarLocalpath) {
+    console.log(avatarLocalpath, "abc");
     throw new ApiError(400, "Avatar is required");
   }
 
   const avatar = await uploadFileCloudnary(avatarLocalpath);
-  const coverImage = await uploadFileCloudnary(coverIMageLocalpath);
 
   if (!avatar) {
-    throw new ApiError(400, "Avatar file is required");
+    throw new ApiError(400, "Avatar file upload failed");
   }
 
   const users = await user.create({
@@ -110,7 +112,8 @@ const LoginUser = asynchandling(async (req, res) => {
   // send it to cookie
 
   const { email, username, password } = req.body;
-
+  console.log(req);
+  console.log(email, "   ", username);
   if (!email && !username) {
     throw new ApiError(400, "Username or email is required");
   }
@@ -476,10 +479,8 @@ const userbyid = asynchandling(async (req, res) => {
     throw new ApiError(400, "User Id is required");
   }
 
-  const User = await user
-    .findById(id)
-    . select("-password -refreshtoken")
-  
+  const User = await user.findById(id).select("-password -refreshtoken");
+
   if (!User) {
     throw new ApiError(404, "User Not Found");
   }
