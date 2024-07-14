@@ -127,6 +127,7 @@ const uploadVideo = asynchandling(async (req, res) => {
 
 const getVideoById = asynchandling(async (req, res) => {
   const { videoId } = req.params;
+  // const videoQu
   
   const video = await videos.findById(videoId);
   if (!video) {
