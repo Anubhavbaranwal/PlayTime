@@ -125,44 +125,42 @@ const uploadVideo = asynchandling(async (req, res) => {
     .json(new ApiResponse(200, video, "Video uploaded Successfully"));
 });
 
-const getVideoById = asynchandling(async (req, res) => {
-  const { videoId } = req.params;
-  // const videoQu
-  
-  const video = await videos.findById(videoId);
-  if (!video) {
-    throw new ApiError(404, "Video not found");
-  }
-
-  // Define different quality levels for the video
-  const qualities = [
-    { resolution: '720p', bitrate: '3000k' },
-    { resolution: '480p', bitrate: '1500k' },
-    { resolution: '240p', bitrate: '800k' }
-  ];
-
-  // Generate video URLs for each quality level
-  const videoUrls = qualities.map(quality => ({
-    resolution: quality.resolution,
-    url: `${video.videoFile}/${quality.resolution}/index.m3u8`
-  }));
-
-  // Return the video details along with URLs for different quality levels
-  return res.status(200).json(new ApiResponse(200, { video, videoUrls }, "Video found"));
-});
 // const getVideoById = asynchandling(async (req, res) => {
 //   const { videoId } = req.params;
-//   //TODO: get video by id
-//   const videoFile = await videos.find({
-//     _id: new mongoose.Types.ObjectId(videoId),
-//   });
-//   // if (!videoFile) {
-//   //   throw new ApiError(400, "there is no video with such id");
-//   // }
-//   return res
-//     .status(200)
-//     .json(new ApiResponse(200, videoFile, "Video successfully found "));
+//   // const videoQu
+  
+//   const video = await videos.findById(videoId);
+//   if (!video) {
+//     throw new ApiError(404, "Video not found");
+//   }
+
+//   // Define different quality levels for the video
+//   const qualities = [
+//     { resolution: '240p', bitrate: '800k' }
+//   ];
+
+//   // Generate video URLs for each quality level
+//   const videoUrls = qualities.map(quality => ({
+//     resolution: quality.resolution,
+//     url: `${video.videoFile}/${quality.resolution}/index.m3u8`
+//   }));
+
+//   // Return the video details along with URLs for different quality levels
+//   return res.status(200).json(new ApiResponse(200, { video, videoUrls }, "Video found"));
 // });
+const getVideoById = asynchandling(async (req, res) => {
+  const { videoId } = req.params;
+  //TODO: get video by id
+  const videoFile = await videos.find({
+    _id: new mongoose.Types.ObjectId(videoId),
+  });
+  if (!videoFile) {
+    throw new ApiError(400, "there is no video with such id");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videoFile, "Video successfully found "));
+});
 
 const updateVideo = asynchandling(async (req, res) => {
   const { videoId } = req.params;

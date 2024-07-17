@@ -11,7 +11,7 @@ const toggleSubscription = asynchandling(async (req, res) => {
   if (!channelId) {
     throw new ApiError(400, "channel Id is not valid");
   }
-  const subscriberId = req.User._id;
+  const subscriberId = req.User?._id;
   const subscribed = await subscription.findOne({
     $and: [
       { subscriber: new mongoose.Types.ObjectId(subscriberId) },
@@ -25,7 +25,7 @@ const toggleSubscription = asynchandling(async (req, res) => {
     channel: channelId,
   });
 
-  if (!subscription) {
+  if (!subscribed) {
     tooglefunc = await subscription.create({
       subscriber: req.User?._id,
       channel: channelId,

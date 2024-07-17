@@ -161,8 +161,9 @@ const LoginUser = asynchandling(async (req, res) => {
 
 //Logout Control
 const LogOut = asynchandling(async (req, res) => {
+  
   await user.findByIdAndUpdate(
-    req.user?._id,
+    {_id: new mongoose.Types.ObjectId(req.user?._id)},
     {
       $unset: {
         refreshToken: 1,
@@ -356,7 +357,7 @@ const updateUsercoverImage = asynchandling(async (req, res) => {
 
 const getChannelandSubscriber = asynchandling(async (req, res) => {
   const { username } = req.params;
-
+ console.log(username);
   if (!username?.trim()) {
     throw new ApiError(400, "username is required");
   }
@@ -477,7 +478,7 @@ const userbyid = asynchandling(async (req, res) => {
     throw new ApiError(400, "User Id is required");
   }
 
-  const User = await user.findById(id).select("-password -refreshtoken");
+  const User = await user.findById({_id: new mongoose.Types.ObjectId(id)}).select("-password -refreshtoken");
 
   if (!User) {
     throw new ApiError(404, "User Not Found");
