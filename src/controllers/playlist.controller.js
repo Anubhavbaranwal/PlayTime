@@ -35,12 +35,9 @@ const getUserPlaylists = asynchandling(async (req, res) => {
   }
 
   const allPlaylist = await playlist.findById(userId);
-  if (!allPlaylist) {
-    throw new ApiError(400, "no Playlist Exists ");
-  }
   return res
     .status(200)
-    .json(new ApiResponse(200, allPlaylist, "Playlist fetched Successfully"));
+    .json(new ApiResponse(200, allPlaylist||[], "Playlist fetched Successfully"));
 });
 
 const getPlaylistById = asynchandling(async (req, res) => {

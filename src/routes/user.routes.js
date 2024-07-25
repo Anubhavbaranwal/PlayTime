@@ -32,7 +32,7 @@ router.route("/register").post(
 router.route("/login").post(LoginUser);
 
 //secured Routes
-router.route("/logout").post(VerifyJWT, LogOut);
+router.route("/logout").post( LogOut);
 router.route("/refresh-token").post(RefessAccessToken);
 router.route("/change-password").post(VerifyJWT, changePassword);
 router.route("/current-user").get(VerifyJWT, currentUser);
