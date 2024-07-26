@@ -1,25 +1,26 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { tweet } from "../models/tweets.models.js";
 import { user } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
+import { tweet } from "../models/tweets.models.js";
 
 const createTweet = asynchandling(async (req, res) => {
   //TODO: create tweet
   const { content } = req.body;
+  console.log(req.User);
   if (!content) {
     throw new ApiError(400, "Please Provide the username and content both");
   }
 
-  const tweet = new tweet.create({
+  const tweets = await tweet.create({
     owner: req.User?._id,
     content,
   });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, tweet, "Tweet created Successfully"));
+    .json(new ApiResponse(200, tweets, "Tweet created Successfully"));
 });
 
 const getUserTweets = asynchandling(async (req, res) => {
