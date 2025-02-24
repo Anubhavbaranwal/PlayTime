@@ -14,6 +14,10 @@ const likeSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Video",
     },
+    liked:{
+      type: Boolean,
+      default: true,
+    },
     likedBy: {
       type: Schema.Types.ObjectId,
       ref: "Users",

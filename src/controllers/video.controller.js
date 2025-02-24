@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
@@ -7,80 +7,68 @@ import {
   uploadFileCloudnary,
 } from "../utils/Cloudinary.js";
 import { videos } from "../models/video.model.js";
+import { user } from "../models/user.model.js";
 const getAllVideos = asynchandling(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  //TODO: get all videos based on query, sort, pagination
-  const options = {
+
+  const aggregationPipeline = [
+    {
+      $match: {
+        isPublished: true,
+        ...(query ? { $text: { $search: query } } : {}), // Avoids error when query is empty
+      },
+    },
+    ...(query
+      ? [
+          {
+            $addFields: { st: { $meta: "textScore" } }, // Only add textScore if query exists
+          },
+        ]
+      : []),
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    {
+      $unwind: { path: "$owner", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        thumbnail: 1,
+        Views: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        duration: 1,
+        owner: { username: 1, fullname: 1, avatar: 1 },
+        ...(query ? { st: 1 } : {}), // Only project textScore if query exists
+      },
+    },
+    {
+      $sort: query ? { st: -1, views: -1 } : { views: -1 }, // Sort by textScore only if using search
+    },
+  ];
+
+  // Ensure aggregatePaginate is used correctly
+  const video = await videos.aggregatePaginate(videos.aggregate(aggregationPipeline), {
     page,
     limit,
-  };
-
-  const video = await videos.aggregatePaginate(
-    [
-      {
-        $match: {
-          $and: [
-            {
-              isPublished: true,
-            },
-            {
-              $text: {
-                $search: query,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $addFields: {
-          st: {
-            $meta: "textScore",
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "owner",
-          foreignField: "_id",
-          as: "owner",
-          pipeline: [
-            {
-              $project: {
-                username: 1,
-                fullName: 1,
-                avatar: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $addFields: {
-          owner: { $first: "$owner" },
-        },
-      },
-      {
-        $sort: {
-          st: -1,
-          views: -1,
-        },
-      },
-    ],
-    {
-      page,
-      limit,
-    }
-  );
+  });
 
   if (!video) {
-    throw new ApiError(500, "something want wrong while get all videos");
+    throw new ApiError(500, "Something went wrong while getting all videos");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, video, "get all videos successfully"));
+    .json(new ApiResponse(200, video, "Get all videos successfully"));
 });
+
 const uploadVideo = asynchandling(async (req, res) => {
 
   const { title, description } = req.body;
@@ -124,44 +112,149 @@ const uploadVideo = asynchandling(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, video, "Video uploaded Successfully"));
 });
-
-// const getVideoById = asynchandling(async (req, res) => {
-//   const { videoId } = req.params;
-//   // const videoQu
-  
-//   const video = await videos.findById(videoId);
-//   if (!video) {
-//     throw new ApiError(404, "Video not found");
-//   }
-
-//   // Define different quality levels for the video
-//   const qualities = [
-//     { resolution: '240p', bitrate: '800k' }
-//   ];
-
-//   // Generate video URLs for each quality level
-//   const videoUrls = qualities.map(quality => ({
-//     resolution: quality.resolution,
-//     url: `${video.videoFile}/${quality.resolution}/index.m3u8`
-//   }));
-
-//   // Return the video details along with URLs for different quality levels
-//   return res.status(200).json(new ApiResponse(200, { video, videoUrls }, "Video found"));
-// });
 const getVideoById = asynchandling(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: get video by id
-  const videoFile = await videos.find({
-    _id: new mongoose.Types.ObjectId(videoId),
-  });
-  if (!videoFile) {
-    throw new ApiError(400, "there is no video with such id");
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video id");
   }
+
+  const video = await videos.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(videoId),
+        isPublished: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "likes",
+        pipeline: [
+          {
+            $match: {
+              liked: true,
+            },
+          },
+          {
+            $group: {
+              _id: "$liked",
+              likeOwners: { $push: "$likedBy" },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "dislikes",
+        pipeline: [
+          {
+            $match: {
+              liked: false,
+            },
+          },
+          {
+            $group: {
+              _id: "$liked",
+              dislikeOwners: { $push: "$likedBy" },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        likes: {
+          $cond: {
+            if: {
+              $gt: [{ $size: "$likes" }, 0],
+            },
+            then: { $first: "$likes.likeOwners" },
+            else: [],
+          },
+        },
+        dislikes: {
+          $cond: {
+            if: {
+              $gt: [{ $size: "$dislikes" }, 0],
+            },
+            then: { $first: "$dislikes.dislikeOwners" },
+            else: [],
+          },
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$owner",
+    },
+    {
+      $project: {
+        videoFile: 1,
+        title: 1,
+        description: 1,
+        duration: 1,
+        thumbnail: 1,
+        Views: 1,
+        owner: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        totalLikes: {
+          $size: "$likes",
+        },
+        totalDisLikes: {
+          $size: "$dislikes",
+        },
+        isLiked: {
+          $cond: {
+            if: {
+              $in: [req.User?._id, "$likes"],
+            },
+            then: true,
+            else: false,
+          },
+        },
+        isDisLiked: {
+          $cond: {
+            if: {
+              $in: [req.User?._id, "$dislikes"],
+            },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+  ]);
+
+  if (!video.length > 0) throw new ApiError(400, "No video found");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, videoFile, "Video successfully found "));
+    .json(new ApiResponse(200, video[0], "Video sent successfully"));
 });
-
 const updateVideo = asynchandling(async (req, res) => {
   const { videoId } = req.params;
   //TODO: update video details like title, description, thumbnail
@@ -238,6 +331,44 @@ const togglePublishStatus = asynchandling(async (req, res) => {
     );
 });
 
+const updateView = asynchandling(async (req, res) => {
+  const { videoId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(videoId)) throw new ApiError(400, "videoId required");
+
+  const video = await videos.findById(videoId);
+  if (!video) throw new ApiError(400, "Video not found");
+
+  video.Views += 1;
+  const updatedVideo = await video.save();
+  if (!updatedVideo) throw new ApiError(400, "Error occurred on updating view");
+
+  let watchHistory;
+  console.log(req.User?._id);
+  if (req.User) {
+    watchHistory = await user.findByIdAndUpdate(
+      req.User?._id,
+      {
+        $push: {
+          watchHistory: new mongoose.Types.ObjectId(videoId),
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    console.log({watchHistory});
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { isSuccess: true, views: updatedVideo.Views, watchHistory },
+        "Video views updated successfully"
+      )
+    );
+});
 export {
   getAllVideos,
   uploadVideo,
@@ -245,4 +376,5 @@ export {
   updateVideo,
   deleteVideo,
   togglePublishStatus,
+  updateView
 };

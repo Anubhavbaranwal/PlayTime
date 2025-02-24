@@ -7,8 +7,8 @@ import { tweet } from "../models/tweets.models.js";
 
 const createTweet = asynchandling(async (req, res) => {
   //TODO: create tweet
-  const { content } = req.body;
-  console.log(req.User);
+  const { tweet:content } = req.body;
+
   if (!content) {
     throw new ApiError(400, "Please Provide the username and content both");
   }
@@ -82,4 +82,9 @@ const deleteTweet = asynchandling(async (req, res) => {
     .json(new ApiResponse(200, deletedtweet, "Tweet Deleted Successfully"));
 });
 
-export { createTweet, getUserTweets, updateTweet, deleteTweet };
+const getallTweets  = asynchandling(async(req,res)=>{
+  const tweets = await tweet.find();
+  return res.status(200).json(new ApiResponse(200,tweets,"All Tweets Fetched Successfully"));
+});
+
+export { createTweet, getUserTweets, updateTweet, deleteTweet,getallTweets };

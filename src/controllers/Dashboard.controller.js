@@ -16,7 +16,7 @@ const getChannelStats = asynchandling(async (req, res) => {
     },
     {
       $lookup: {
-        from: "subcriptions",
+        from: "subscriptions",
         localField: "_id",
         foreignField: "subscriber",
         as: "totalSubscriber",
@@ -48,12 +48,12 @@ const getChannelStats = asynchandling(async (req, res) => {
       $group: {
         _id: null,
         totalLikes: {
-          $size: "$like",
+          $sum: "$likes",
         },
-        totalViwes: {
+        totalViews: {
           $sum: "$views",
         },
-        $totalVideo: {
+        totalVideos: {
           $sum: 1,
         },
       },
@@ -77,7 +77,7 @@ const getChannelVideos = asynchandling(async (req, res) => {
   // TODO: Get all the videos uploaded by the channel
   const {id}=req.params;
   const AllVideos = await videos.find({
-    owner: new mongoose.Types.ObjectId(id),
+    owner: new mongoose.Types.ObjectId(req.User?._id),
   });
   if (!AllVideos) {
     throw new ApiError(404, "No Video found");

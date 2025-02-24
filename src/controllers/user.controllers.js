@@ -37,8 +37,7 @@ const registerUser = asynchandling(async (req, res) => {
   // return res
 
   // step-get user details from frontend
-  const { email, username, fullname, password } = req.body;
-
+  const { email, username, fullName:fullname, password } = req.body;
   //Step -2
   if (
     [fullname, username, email, password].some((field) => field?.trim() === "")
@@ -253,7 +252,78 @@ const changePassword = asynchandling(async (req, res) => {
 const currentUser = asynchandling(async (req, res) => {
   return res
     .status(200)
-    .json(new ApiResponse(200, res.User, "Current User Fetched SuccessFully"));
+    .json(new ApiResponse(200, req.User, "Current User Fetched SuccessFully"));
+});
+
+const getUserChannelProfile = asynchandling(async (req, res) => {
+  const { username } = req.params;
+  if (!username) {
+    throw new ApiError(400, "no username found");
+  }
+
+  const channelUser = await user.aggregate([
+    {
+      $match: {
+        // this gives channel document
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      // this gives Subscribers of channel
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      // this gives subcriptions of channel
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelsSubscribedToCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        username: 1,
+        fullName: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+        subscribersCount: 1,
+        channelsSubscribedToCount: 1,
+        isSubscribed: 1,
+      },
+    },
+  ]);
+
+  if (!channelUser?.length) {
+    throw new ApiError(404, "channel does not exists");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, channelUser[0], "Channel Fetched Successfully"));
 });
 
 ///when updating file make another controller as it is advised in production level; code
@@ -465,11 +535,12 @@ const getWatchHistory = asynchandling(async (req, res) => {
         ],
       },
     },
+    
   ]);
-  console.log(User);
+  console.log(User?.[0].watchHistory);
   return res
     .status(200)
-    .json(new ApiResponse(200, User, "Watch History is Fetched Successfully"));
+    .json(new ApiResponse(200, User?.[0].watchHistory, "Watch History is Fetched Successfully"));
 });
 const userbyid = asynchandling(async (req, res) => {
   const { id } = req.params;
@@ -501,4 +572,5 @@ export {
   getChannelandSubscriber,
   getWatchHistory,
   userbyid,
+  getUserChannelProfile
 };
