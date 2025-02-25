@@ -16,6 +16,7 @@ const getAllVideos = asynchandling(async (req, res) => {
       $match: {
         isPublished: true,
         ...(query ? { $text: { $search: query } } : {}), // Avoids error when query is empty
+        ...(userId ? { owner: new mongoose.Types.ObjectId(userId) } : {}), 
       },
     },
     ...(query
