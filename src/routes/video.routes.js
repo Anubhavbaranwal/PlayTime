@@ -10,6 +10,7 @@ import {
   updateView,
 } from "../controllers/video.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { checkUser } from "../middlewares/openRouteAuth.middleware.js";
 
 const router = Router();
 
@@ -32,7 +33,7 @@ router
   .patch(upload.single("thumbnail"), updateVideo);
 
 router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
-router.route("/view/:videoId").patch(VerifyJWT,updateView);
+router.route("/view/:videoId").patch(checkUser,updateView);
 
 
 export default router;

@@ -16,6 +16,8 @@ import {
 } from "../controllers/user.controllers.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { VerifyJWT } from "../middlewares/auth.middleware.js";
+import { checkUser } from "../middlewares/openRouteAuth.middleware.js";
+
 
 const router = Router();
 
@@ -39,7 +41,7 @@ router.route("/change-password").post(VerifyJWT, changePassword);
 router.route("/current-user").get(VerifyJWT, currentUser);
 
 router.route("/update-userdetail").patch(VerifyJWT, updateUserDetails);
-router.route("/c/:username").get(getUserChannelProfile);
+router.route("/c/:username").get(checkUser,getUserChannelProfile);
 router
   .route("/update-avatar")
   .patch(VerifyJWT, upload.single("/avatar"), updateUserAvatar);

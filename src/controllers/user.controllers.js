@@ -260,18 +260,19 @@ const getUserChannelProfile = asynchandling(async (req, res) => {
   if (!username) {
     throw new ApiError(400, "no username found");
   }
-
-  const channelUser = await user.aggregate([
+  const userObjectId = req.User && req.User._id
+  ? new mongoose.Types.ObjectId(req.User._id)
+  : null;
+   const channelUser = await user.aggregate([
     {
       $match: {
-        // this gives channel document
         username: username?.toLowerCase(),
       },
     },
     {
       // this gives Subscribers of channel
       $lookup: {
-        from: "subscriptions",
+        from: "subcriptions",
         localField: "_id",
         foreignField: "channel",
         as: "subscribers",
@@ -280,7 +281,7 @@ const getUserChannelProfile = asynchandling(async (req, res) => {
     {
       // this gives subcriptions of channel
       $lookup: {
-        from: "subscriptions",
+        from: "subcriptions",
         localField: "_id",
         foreignField: "subscriber",
         as: "subscribedTo",
@@ -296,7 +297,7 @@ const getUserChannelProfile = asynchandling(async (req, res) => {
         },
         isSubscribed: {
           $cond: {
-            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            if: { $in: [userObjectId, "$subscribers.subscriber"] },
             then: true,
             else: false,
           },
@@ -316,7 +317,6 @@ const getUserChannelProfile = asynchandling(async (req, res) => {
       },
     },
   ]);
-
   if (!channelUser?.length) {
     throw new ApiError(404, "channel does not exists");
   }
@@ -326,7 +326,6 @@ const getUserChannelProfile = asynchandling(async (req, res) => {
     .json(new ApiResponse(200, channelUser[0], "Channel Fetched Successfully"));
 });
 
-///when updating file make another controller as it is advised in production level; code
 const updateUserDetails = asynchandling(async (req, res) => {
   const { fullname, email } = req.body;
 

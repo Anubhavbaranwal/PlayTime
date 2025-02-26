@@ -92,7 +92,6 @@ const uploadVideo = asynchandling(async (req, res) => {
 
   const videoupload = await uploadFileCloudnary(vidoepath);
   const thumbnailupload = await uploadFileCloudnary(thumbnailpath);
-  console.log(videoupload, thumbnailupload);
 
   if (!(videoupload || thumbnailupload)) {
     throw new ApiError(400, "Something went wrong while uploading Video");
@@ -282,7 +281,6 @@ const updateVideo = asynchandling(async (req, res) => {
   const updatedVideo = await videos.findByIdAndUpdate(videoId, updateObject, {
     new: true,
   });
-  console.log(updateVideo);
   return res
     .status(200)
     .json(new ApiResponse(200, updatedVideo, "video updated successfully"));
@@ -344,7 +342,6 @@ const updateView = asynchandling(async (req, res) => {
   if (!updatedVideo) throw new ApiError(400, "Error occurred on updating view");
 
   let watchHistory;
-  console.log(req.User?._id);
   if (req.User) {
     watchHistory = await user.findByIdAndUpdate(
       req.User?._id,
@@ -357,7 +354,6 @@ const updateView = asynchandling(async (req, res) => {
         new: true,
       }
     );
-    console.log({watchHistory});
   }
 
   return res
