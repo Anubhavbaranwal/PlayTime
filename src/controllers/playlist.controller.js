@@ -11,7 +11,7 @@ const createPlaylist = asynchandling(async (req, res) => {
   if (!(name || description)) {
     throw new ApiError(400, "Please fill the required Field");
   }
-  const playlistCreate = new playlist.create({
+  const playlistCreate = await playlist.create({
     name,
     description,
     owner: new mongoose.Types.ObjectId(req.User?._id),
@@ -37,7 +37,7 @@ const getUserPlaylists = asynchandling(async (req, res) => {
   const allPlaylist = await playlist.findById(userId);
   return res
     .status(200)
-    .json(new ApiResponse(200, allPlaylist||[], "Playlist fetched Successfully"));
+    .json(new ApiResponse(200, allPlaylist, "Playlist fetched Successfully"));
 });
 
 const getPlaylistById = asynchandling(async (req, res) => {

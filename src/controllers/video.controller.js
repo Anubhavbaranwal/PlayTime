@@ -22,7 +22,7 @@ const getAllVideos = asynchandling(async (req, res) => {
     ...(query
       ? [
           {
-            $addFields: { st: { $meta: "textScore" } }, // Only add textScore if query exists
+            $addFields: { st: { $meta: "textScore" } },
           },
         ]
       : []),
@@ -47,15 +47,14 @@ const getAllVideos = asynchandling(async (req, res) => {
         updatedAt: 1,
         duration: 1,
         owner: { username: 1, fullname: 1, avatar: 1 },
-        ...(query ? { st: 1 } : {}), // Only project textScore if query exists
+        ...(query ? { st: 1 } : {}),
       },
     },
     {
-      $sort: query ? { st: -1, views: -1 } : { views: -1 }, // Sort by textScore only if using search
+      $sort: query ? { st: -1, views: -1 } : { views: -1 }, 
     },
   ];
 
-  // Ensure aggregatePaginate is used correctly
   const video = await videos.aggregatePaginate(videos.aggregate(aggregationPipeline), {
     page,
     limit,
@@ -309,13 +308,15 @@ const togglePublishStatus = asynchandling(async (req, res) => {
   if (!publish) {
     throw new ApiError(200, "Something Went Wrong Please Try Again");
   }
-  const publishValue = await videos.findById(videoId).isPublished;
+  const publishValue = await videos.findById(videoId);
+  console.log(publishValue.isPublished);
+  const value = publishValue.isPublished;
 
   const isPublish = await videos.findByIdAndUpdate(
     videoId,
     {
       $set: {
-        isPublished: !publishValue,
+        isPublished: !value,
       },
     },
     {
