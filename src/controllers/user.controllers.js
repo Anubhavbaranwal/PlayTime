@@ -233,7 +233,9 @@ const RefessAccessToken = asynchandling(async (req, res) => {
 
 const changePassword = asynchandling(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
-
+  if(!oldPassword||!newPassword){
+    throw new ApiError(401,"all fields are required");
+  }
   const User = await user.findById(req.User?._id);
   const isPasswordCorrect = await User.isPasswordCorrect(oldPassword);
 
@@ -327,28 +329,21 @@ const getUserChannelProfile = asynchandling(async (req, res) => {
 });
 
 const updateUserDetails = asynchandling(async (req, res) => {
-  const { fullname, email } = req.body;
-
-  if (!(fullname || email)) {
+  const { fullname, email,description } = req.body;
+  console.log(req.body);
+  if (!(fullname || email||description)) {
     throw new ApiError(400, "All Fields Are Required");
   }
 
-  const User = user
-    .findById(
-      req.User?._id,
-      {
-        $set: {
-          fullname,
-          email,
-        },
-      },
-      { new: true }
-    )
-    .select("-password");
+  const updatedUser = await user.findByIdAndUpdate(
+    req.User?._id,
+    { fullname, email ,description},
+    { new: true, select: "-password -refreshtoken" } // Exclude sensitive fields
+);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, User, "Account Details Updated SuccessFully"));
+    .json(new ApiResponse(200, updatedUser, "Account Details Updated SuccessFully"));
 });
 
 const updateUserAvatar = asynchandling(async (req, res) => {
@@ -363,22 +358,24 @@ const updateUserAvatar = asynchandling(async (req, res) => {
   if (!avatarlink.url) {
     throw new ApiError(400, "Something went wrong on uploading file");
   }
-
+  if (!mongoose.Types.ObjectId.isValid(req.User?._id)) {
+    throw new ApiError(400, "Invalid User ID");
+}
   const prevLink = (await user.findById(req.User?._id))?.avatar ?? null;
 
-  const User = await user
+  const updatedUser = await user
     .findByIdAndUpdate(
-      req.User?._id,
-      {
-        $set: {
-          avatar: avatarlink.url,
+        req.User?._id,
+        {
+            $set: {
+                avatar: avatarlink.url, // Ensure avatarlink.url is valid
+            },
         },
-      },
-      {
-        new: true,
-      }
+        {
+            new: true,
+        }
     )
-    .select("-password");
+    .select("-password -refreshtoken");
 
   if (req.User && prevLink) {
     await deleteFilefromcloudinary(prevLink);
@@ -386,17 +383,23 @@ const updateUserAvatar = asynchandling(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, User, "Avatar updated successfully"));
+    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
 });
-const updateUsercoverImage = asynchandling(async (req, res) => {
-  const coverImage = req.file?.path;
 
-  if (!coverImage) {
+const updateUsercoverImage = asynchandling(async (req, res) => {
+  const coverimage = req.file?.path;
+
+  if (!coverimage) {
     throw new ApiError(400, "Please Add CoverImage Link you want to keep");
   }
+
+  if (!mongoose.Types.ObjectId.isValid(req.User?._id)) {
+    throw new ApiError(400, "Invalid User ID");
+}
+
   const prevLink = (await user.findById(req.User?._id))?.coverImage ?? null;
 
-  const coverImagelink = await uploadFileCloudnary(coverImage);
+  const coverImagelink = await uploadFileCloudnary(coverimage);
 
   if (!coverImagelink.url) {
     throw new ApiError(400, "Something went wrong on uploading file");
@@ -414,7 +417,7 @@ const updateUsercoverImage = asynchandling(async (req, res) => {
         new: true,
       }
     )
-    .select("-password");
+    .select("-password -refreshtoken");
 
   if (prevLink) {
     await deleteFilefromcloudinary(prevLink);
