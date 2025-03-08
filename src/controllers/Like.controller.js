@@ -1,7 +1,7 @@
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import mongoose, { isValidObjectId } from "mongoose";
-import { Like } from "../models/like.model.js";
+import { Like } from "../models/like.model.js";;
 import { videos } from "../models/video.model.js";
 import {  comment } from "../models/comments.model.js";
 import { tweet } from "../models/tweets.models.js";
