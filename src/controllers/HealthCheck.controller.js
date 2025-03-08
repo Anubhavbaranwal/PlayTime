@@ -1,9 +1,7 @@
 import { ApiResponse } from "../utils/Apiresponse.js";
 import { asynchandling } from "../utils/asynchandling.js";
 
-const healthcheck = asynchandling(async (_req, res) => {
-  //TODO: build a healthcheck response that simply returns the OK status as json with a message
-
+const healthcheck = asynchandling(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, "", "service is working fine."));
