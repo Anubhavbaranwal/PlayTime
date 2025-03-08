@@ -110,13 +110,98 @@ const getPlaylistById = asynchandling(async (req, res) => {
   if (!playlistId) {
     throw new ApiError(400, "please provide correect playlist Id");
   }
-  const getPlaylist = await playlist.findById(playlistId);
-  if (!getPlaylist) {
-    throw new ApiError(400, "No Playlist exists");
-  }
+  const getPlaylist = await playlist.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(playlistId),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "video",
+        foreignField: "_id",
+        as: "videos",
+        pipeline: [
+          {
+            $match: { isPublished: true },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    fullname: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        owner: {
+          $first: "$owner",
+        },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        description: 1,
+        videos: 1,
+        owner: 1,
+        thumbnail: 1,
+        videosCount: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        thumbnail: {
+          $first: "$videos.thumbnail",
+        },
+        videosCount: {
+          $size: "$videos",
+        },
+        totalViews: {
+          $sum: "$videos.Views",
+        },
+      },
+    },
+  ]);
   return res
     .status(200)
-    .json(new ApiResponse(200, getPlaylist, "Playlist found Successfully"));
+    .json(new ApiResponse(200, getPlaylist?.[0]||[], "Playlist found Successfully"));
 });
 
 const addVideoToPlaylist = asynchandling(async (req, res) => {
