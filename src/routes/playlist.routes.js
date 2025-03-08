@@ -5,10 +5,12 @@ import {
   deletePlaylist,
   getPlaylistById,
   getUserPlaylists,
+  getVideoSavePlaylists,
   removeVideoFromPlaylist,
   updatePlaylist,
 } from "../controllers/playlist.controller.js";
 import { VerifyJWT } from "../middlewares/auth.middleware.js";
+import { checkUser } from "../middlewares/openRouteAuth.middleware.js";
 
 const router = Router();
 
@@ -22,9 +24,9 @@ router
   .patch(updatePlaylist)
   .delete(deletePlaylist);
 
-router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
+router.route("/add/:playlistId/:videoId").patch(addVideoToPlaylist);
 router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
-
-router.route("/users/:userId").get(getUserPlaylists);
+router.route("/user/:userId").get(checkUser, getUserPlaylists);
+router.route("/user/playlists/:videoId").get(VerifyJWT,getVideoSavePlaylists);
 
 export default router;
