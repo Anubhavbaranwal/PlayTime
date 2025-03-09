@@ -5,7 +5,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Update this to match your frontend URL
+    origin: "https://playtime-xty6.onrender.com", 
     credentials: true,
   })
 );
