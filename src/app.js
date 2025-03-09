@@ -5,7 +5,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://playtime-xty6.onrender.com", 
+    origin: "https://playtime-frontend.vercel.app", 
     credentials: true,
   })
 );
