@@ -158,7 +158,7 @@ const getSubscribedChannels = asynchandling(async (req, res) => {
         pipeline: [
           {
             $project: {
-              fullName: 1,
+              fullname: 1,
               username: 1,
               avatar: 1,
             },
@@ -172,7 +172,7 @@ const getSubscribedChannels = asynchandling(async (req, res) => {
     // get channel's subscribers
     {
       $lookup: {
-        from: "subscriptions",
+        from: "subcriptions",
         localField: "channel._id",
         foreignField: "channel",
         as: "channelSubscribers",
@@ -183,7 +183,7 @@ const getSubscribedChannels = asynchandling(async (req, res) => {
       $addFields: {
         "channel.isSubscribed": {
           $cond: {
-            if: { $in: [req.user?._id, "$channelSubscribers.subscriber"] },
+            if: { $in: [req.User?._id, "$channelSubscribers.subscriber"] },
             then: true,
             else: false,
           },
